@@ -27,42 +27,42 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import RepeatedKFold
 
+import pandas as pd
+import os
 
 import sys
 
 
 from itertools import product
-variablesPosibles=[
-[25500, 3000,34500],
-[round(40*0.85,2), 40, round(40*1.15,2)],
-[21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46],
-[44115, 51900, 59685],
-[round(25*0.85,2), 25, round(25*1.15,2)],
-[0.013, 0.016, 0.018],
-[0.011, 0.013, 0.015],
-[0.3672, 0.432, 0.4968],
-[0.17, 0.2,0.23],
-[0.017, 0.02, 0.023],
-[148, 173, 199],
-[1,2,3]
-]
-flujo_masico_aceite=[51900*0.85,51900,51900*1.15]
-temperatura_entrada_aceite=[40*0.85, 40, 40*1.15]
-temperatura_salida_aceite=[21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46]
-flujo_masico_agua=[30000*0.85, 30000, 30000*1.15]
-temperatura_entrada_agua=[25*0.85, 25, 25*1.15]
-diametro_tubos_exterior=[0.013, 0.016, 0.018]
-diametro_tubos_interior=[0.011, 0.013, 0.015]
-diametro_carcasa_interior=[432*0.85, 432, 432*1.15]
-espacio_baffles=[0.2*0.85, 0.2, 0.2*1.15]
-pitch=[0.02*0.85, 0.02, 0.02*1.15]
-numero_tubos=[148, 173, 199]
-numero_pasos=[1, 2, 3]
 
-flujo_masico_aceite_Cliente0=30000
-temperatura_entrada_aceite_Cliente1=40
-flujo_masico_agua_Cliente3=51900
-temperatura_entrada_agua_Cliente4=25
+
+#lectura csv
+df = pd.read_csv(os.path.join("datosCompletos.csv"), delimiter=",", header=None)
+
+#buscar min y max
+minimos = df.min()
+maximos = df.max()
+
+#para cada columna
+
+columnasAUsar=[1,2,3,4,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]
+variablesPosibles=[]
+
+for columna in columnasAUsar:
+    min = round((minimos[columna]*0.95),12)
+    max = round((maximos[columna]*1.05),12) 
+    valor = min
+    valoresDeVariable = []
+    valoresDeVariable.append(valor) 
+    while(valor < max):
+        valoresDeVariable.append(round(valor,12))
+        valor+=0.1
+    variablesPosibles.append(valoresDeVariable)    
+
+
+
+
+
 
 
 def cartesian(arrays, out=None):
