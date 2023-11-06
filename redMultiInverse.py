@@ -29,13 +29,12 @@ from sklearn.model_selection import RepeatedKFold
 
 import pandas as pd
 import os
-
 import sys
-
-
 from itertools import product
 
-datos = "datosCompletos.csv"
+datos = "datosCompletos.csv" #CAMBIAR EL CSV
+columnasAUsar = [1,2,3,4,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]
+#COLUMNA 5 = Power
 
 
 
@@ -110,48 +109,24 @@ def returnValues(data, indexMenor,indexMayor):
 	rowMayor=data[indexMayor,0:12]
 	return rowMenor, rowMayor
 
-def generarEntradasGeneticas(rowMenor, rowMayor):
+def generarEntradasGeneticas(rowMenor, rowMayor, variablesPosibles):
 	arrayValidacion=[]
 
-	for i in range(0, len(rowMenor)):
-		 # and i!=10
-		if(i!=0 and i!=1 and i!=3 and i!=4):
-			if(rowMenor[i]==rowMayor[i]):
-				arrayNuevo=[]
-				arrayNuevo.append(rowMenor[i])
-				
-				arrayValidacion.append(arrayNuevo)
-			else:
-				arrayValidacion.append(variablesPosibles[i])
+	for columna in columnasAUsar:
+		arrayColumna =[]
+		if(rowMayor[columna] == rowMenor[columna]):
+			arrayColumna.append(rowMayor[columna])
+			arrayValidacion.append(arrayColumna)
 		else:
-			if i==0 and flujo_masico_aceite_Cliente0!=-1:
-				arrayNuevo=[]
-				arrayNuevo.append(flujo_masico_aceite_Cliente0)
-				arrayValidacion.append(arrayNuevo)
+			if(columna>5):
+				arrayValidacion.append(valoresPosibles[columna-2])
 			else:
-				if i==1 and temperatura_entrada_aceite_Cliente1!=-1:
-					arrayNuevo=[]
-					arrayNuevo.append(temperatura_entrada_aceite_Cliente1)
-					arrayValidacion.append(arrayNuevo)
-				else:
-					if i==3 and flujo_masico_agua_Cliente3!=-1:
-						arrayNuevo=[]
-						arrayNuevo.append(flujo_masico_agua_Cliente3)
-						arrayValidacion.append(arrayNuevo)
-					else:
-						if i==4 and temperatura_entrada_agua_Cliente4!=-1:
-							arrayNuevo=[]
-							arrayNuevo.append(temperatura_entrada_agua_Cliente4)
-							arrayValidacion.append(arrayNuevo)
-						# else:
-						# 	if i==10 :
-						# 		arrayNuevo=[]
-						# 		arrayNuevo.append(173)
-						# 		arrayValidacion.append(arrayNuevo)
+				arrayValidacion.append(valoresPosibles[columna-1])
+	
 	cartesian2= cartesian(arrayValidacion)
 	return cartesian2
 
-def get_model(n_inputs, n_outputs):
+def get_model(n_inputs, n_outputs): #Crea un modelo de dos capas 
 	model = Sequential()
 	model.add(Dense(20, input_dim=n_inputs, kernel_initializer='he_uniform', activation='relu'))
 	model.add(Dense(13626, activation='relu'))
@@ -160,12 +135,15 @@ def get_model(n_inputs, n_outputs):
 	model.compile(loss='mse', optimizer='adam',metrics=['mse','mae','accuracy'])
 	return model
 
-def predict_inverse(valorReferencia, training_data_not_scaled, model):
+def predict_inverse(valorReferencia, training_data_not_scaled, model): #Extrae todas las configuraciones posibles, si está dentro del rango la añade al array validado
 	# valorReferencia=77583
 	indexMenor, indexMayor=find_nearest(training_data_not_scaled,valorReferencia)
 
 	rowDown, rowUp= returnValues(training_data_not_scaled,indexMenor,indexMayor)
-	geneticas = generarEntradasGeneticas(rowDown,rowUp)
+	geneticas = generarEntradasGeneticas(rowDown,rowUp, posiblesConfiguraciones)
+
+	scaler_x = MinMaxScaler () 
+	scaler_y = MinMaxScaler ()
 
 	arrayValidas=[]
 	for linea in geneticas:
@@ -185,7 +163,7 @@ def predict_inverse(valorReferencia, training_data_not_scaled, model):
 			arrayValidas.append(listaGenetica)
 	return arrayValidas
 
-def evaluate_model(X, y):
+def evaluate_model(X, y): #Crea el modelo necesario con los datos que tenemos
 	results = list()
 	n_inputs, n_outputs = X.shape[1], y.shape[1]
 	print("Inputs: "+str(n_inputs))
@@ -207,8 +185,6 @@ def evaluate_model(X, y):
 	yval_scale = scaler_y.transform (y_val)
 
 
-
-
 	model = get_model(n_inputs, n_outputs)
 	
 	history = model.fit(xtrain_scale, ytrain_scale, verbose=1, epochs=100, validation_data=(xval_scale,yval_scale))
@@ -217,7 +193,7 @@ def evaluate_model(X, y):
 
 def valoresPosibles(datos):
 	#lectura csv
-	df = pd.read_csv(os.path.join(datos), delimiter=",", header=None)
+	df = pd.read_csv(os.path.join(datos), delimiter=",")
 
 	#buscar min y max
 	minimos = df.min()
@@ -225,7 +201,6 @@ def valoresPosibles(datos):
 
 	#para cada columna
 
-	columnasAUsar=[1,2,3,4,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]
 	variablesPosibles=[]
 
 	for columna in columnasAUsar:
@@ -241,9 +216,10 @@ def valoresPosibles(datos):
 	return variablesPosibles
 
 
+#EMPIEZA EL MAIN
 posiblesConfiguraciones = valoresPosibles(datos)
 
-training_data_not_scaled = genfromtxt(datos, delimiter=';', skip_header=0)
+training_data_not_scaled = genfromtxt(datos, delimiter=';', skip_header=1) #Extrae los datos del archivo
 X = training_data_not_scaled[:,[1,2,3,4,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]] #Datos de entrada
 y=training_data_not_scaled[:,5] #A predecir
 
@@ -256,5 +232,5 @@ print(y)
 modelo = evaluate_model(X, y)
 #Calor a predecir
 valorReferencia=77583
-arrayValidas=predict_inverse(valorReferencia,training_data_not_scaled,modelo)
+arrayValidas=predict_inverse(valorReferencia,training_data_not_scaled,modelo, posiblesConfiguraciones)
 print(arrayValidas)

@@ -27,4 +27,41 @@ for columna in columnasAUsar:
     
 
 
+for i in range(0, len(rowMenor)):
+		 # and i!=10
+		if(i!=0 and i!=1 and i!=3 and i!=4):
+			if(rowMenor[i]==rowMayor[i]):
+				arrayNuevo=[]
+				arrayNuevo.append(rowMenor[i])
+				
+				arrayValidacion.append(arrayNuevo)
+			else:
+				arrayValidacion.append(variablesPosibles[i])
+		else:
+			if i==0 and flujo_masico_aceite_Cliente0!=-1:
+				arrayNuevo=[]
+				arrayNuevo.append(flujo_masico_aceite_Cliente0)
+				arrayValidacion.append(arrayNuevo)
+			else:
+				if i==1 and temperatura_entrada_aceite_Cliente1!=-1:
+					arrayNuevo=[]
+					arrayNuevo.append(temperatura_entrada_aceite_Cliente1)
+					arrayValidacion.append(arrayNuevo)
+				else:
+					if i==3 and flujo_masico_agua_Cliente3!=-1:
+						arrayNuevo=[]
+						arrayNuevo.append(flujo_masico_agua_Cliente3)
+						arrayValidacion.append(arrayNuevo)
+					else:
+						if i==4 and temperatura_entrada_agua_Cliente4!=-1:
+							arrayNuevo=[]
+							arrayNuevo.append(temperatura_entrada_agua_Cliente4)
+							arrayValidacion.append(arrayNuevo)
+						# else:
+						# 	if i==10 :
+						# 		arrayNuevo=[]
+						# 		arrayNuevo.append(173)
+						# 		arrayValidacion.append(arrayNuevo)    
+
+
 
