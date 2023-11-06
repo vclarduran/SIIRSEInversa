@@ -251,7 +251,7 @@ dtype = [
 
 
 # Cargar los datos del archivo con punto y coma como delimitador
-training_data_not_scaled = genfromtxt(datos, delimiter=';', skip_header=1, dtype=dtype, invalid_raise=False)
+training_data_not_scaled = genfromtxt(datos, delimiter=',', skip_header=1, dtype=dtype, invalid_raise=False)
 
 print(training_data_not_scaled)
 
