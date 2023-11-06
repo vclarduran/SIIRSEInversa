@@ -32,7 +32,7 @@ import os
 import sys
 from itertools import product
 
-datos = "datos.csv" #CAMBIAR EL CSV
+datos = "datosUnidosPerdidaTubos.csv" #CAMBIAR EL CSV
 columnasAUsar = [1,2,3,4,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]
 #COLUMNA 5 = Power
 
@@ -204,8 +204,8 @@ def valoresPosibles(datos):
 	variablesPosibles=[]
 
 	for columna in columnasAUsar:
-		min = round((minimos[columna]*0.95),12)
-		max = round((maximos[columna]*1.05),12) 
+		min = round((minimos.iloc[columna]*0.95),12)
+		max = round((maximos.iloc[columna]*1.05),12) 
 		valor = min
 		valoresDeVariable = []
 		valoresDeVariable.append(valor) 
@@ -219,8 +219,42 @@ def valoresPosibles(datos):
 #EMPIEZA EL MAIN
 posiblesConfiguraciones = valoresPosibles(datos)
 
+dtype = [
+    ('Timestamp', 'datetime64'),
+    ('Wind speed (m/s)', 'float64'),
+    ('Wind direction (°)', 'float64'),
+    ('Nacelle position (°)', 'float64'),
+    ('Energy Export (kWh)', 'float64'),
+    ('Power (kW)', 'float64'),
+    ('Rotor current (A)', 'float64'),
+    ('Rotor speed (RPM)', 'float64'),
+    ('Generator RPM (RPM)', 'float64'),
+    ('Generator RPM, Max (RPM)', 'float64'),
+    ('Generator RPM, Min (RPM)', 'float64'),
+    ('Generator RPM, Standard deviation (RPM)', 'float64'),
+    ('Rotor speed, Max (RPM)', 'float64'),
+    ('Rotor speed, Min (RPM)', 'float64'),
+    ('Rotor speed, Standard deviation (RPM)', 'float64'),
+    ('Blade angle (pitch position) (°)', 'float64'),
+    ('Blade angle (pitch position), Max (°)', 'float64'),
+    ('Blade angle (pitch position), Min (°)', 'float64'),
+    ('Blade angle (pitch position), Standard deviation (°)', 'float64'),
+    ('Grease left generator bearing', 'float64'),
+    ('Grease left shaft bearing', 'float64'),
+    ('direccion (grados)', 'float64'),
+    ('presion (hPa)', 'float64'),
+    ('Xpos', 'int'),
+    ('Ypos', 'int'),
+    ('Zpos', 'int'),
+    ('Turbine', 'U10')  # 'U10' para cadenas de hasta 10 caracteres
+]
+
+
 # Cargar los datos del archivo con punto y coma como delimitador
-training_data_not_scaled = genfromtxt(datos, delimiter=';', skip_header=1)
+training_data_not_scaled = genfromtxt(datos, delimiter=';', skip_header=1, dtype=dtype, invalid_raise=False)
+
+print(training_data_not_scaled)
+
 
 # Acceder a las columnas que necesitas
 X = training_data_not_scaled[:, [1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]]
