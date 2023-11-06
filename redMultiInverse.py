@@ -35,33 +35,7 @@ import sys
 
 from itertools import product
 
-
-#lectura csv
-df = pd.read_csv(os.path.join("datosCompletos.csv"), delimiter=",", header=None)
-
-#buscar min y max
-minimos = df.min()
-maximos = df.max()
-
-#para cada columna
-
-columnasAUsar=[1,2,3,4,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]
-variablesPosibles=[]
-
-for columna in columnasAUsar:
-    min = round((minimos[columna]*0.95),12)
-    max = round((maximos[columna]*1.05),12) 
-    valor = min
-    valoresDeVariable = []
-    valoresDeVariable.append(valor) 
-    while(valor < max):
-        valoresDeVariable.append(round(valor,12))
-        valor+=0.1
-    variablesPosibles.append(valoresDeVariable)    
-
-
-
-
+datos = "datosCompletos.csv"
 
 
 
@@ -129,8 +103,6 @@ def find_nearest(array,valor):
 			mayor=array[i][12]
 			idxMayor=i
 	return idxMenor, idxMayor
-
-
 
 def returnValues(data, indexMenor,indexMayor):
 
@@ -241,22 +213,39 @@ def evaluate_model(X, y):
 	
 	history = model.fit(xtrain_scale, ytrain_scale, verbose=1, epochs=100, validation_data=(xval_scale,yval_scale))
 	
-	
-	# row=[30000, 40, 34, 51900, 25, 0.016, 0.013, 0.432, 0.17, 0.02, 173, 2]
-
-	# newX = asarray([row])
-	# scalada= scaler_x.transform(newX)
-	# yhat=model.predict(scalada)
-	# print(yhat)
-	# yInverse=scaler_y.inverse_transform(yhat)
-	# print(yInverse)
 	return model
 
+def valoresPosibles(datos):
+	#lectura csv
+	df = pd.read_csv(os.path.join(datos), delimiter=",", header=None)
+
+	#buscar min y max
+	minimos = df.min()
+	maximos = df.max()
+
+	#para cada columna
+
+	columnasAUsar=[1,2,3,4,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]
+	variablesPosibles=[]
+
+	for columna in columnasAUsar:
+		min = round((minimos[columna]*0.95),12)
+		max = round((maximos[columna]*1.05),12) 
+		valor = min
+		valoresDeVariable = []
+		valoresDeVariable.append(valor) 
+		while(valor < max):
+			valoresDeVariable.append(round(valor,12))
+			valor+=0.1
+		variablesPosibles.append(valoresDeVariable)    
+	return variablesPosibles
 
 
-training_data_not_scaled = genfromtxt('datosUnidosTodos.csv', delimiter=';', skip_header=0)
-X = training_data_not_scaled[:,[0,1,2,3,4,5,6,7,8,9,10,11]]
-y=training_data_not_scaled[:,[12,13,14]]
+posiblesConfiguraciones = valoresPosibles(datos)
+
+training_data_not_scaled = genfromtxt(datos, delimiter=';', skip_header=0)
+X = training_data_not_scaled[:,[1,2,3,4,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]] #Datos de entrada
+y=training_data_not_scaled[:,5] #A predecir
 
 
 print(X)
