@@ -32,7 +32,7 @@ import os
 import sys
 from itertools import product
 
-datos = "datosCompletos.csv" #CAMBIAR EL CSV
+datos = "datos.csv" #CAMBIAR EL CSV
 columnasAUsar = [1,2,3,4,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]
 #COLUMNA 5 = Power
 
@@ -219,9 +219,13 @@ def valoresPosibles(datos):
 #EMPIEZA EL MAIN
 posiblesConfiguraciones = valoresPosibles(datos)
 
-training_data_not_scaled = genfromtxt(datos, delimiter=';', skip_header=1) #Extrae los datos del archivo
-X = training_data_not_scaled[:,[1,2,3,4,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]] #Datos de entrada
-y=training_data_not_scaled[:,5] #A predecir
+# Cargar los datos del archivo con punto y coma como delimitador
+training_data_not_scaled = genfromtxt(datos, delimiter=';', skip_header=1)
+
+# Acceder a las columnas que necesitas
+X = training_data_not_scaled[:, [1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]]
+y = training_data_not_scaled[:, 5]  # Columna 5 es la variable a predecir
+
 
 
 print(X)
