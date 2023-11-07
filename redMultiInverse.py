@@ -83,7 +83,7 @@ def cartesian(arrays, out=None):
     if out is None:
         out = np.zeros([n, len(arrays)], dtype=np.float64)
 
-    m = n / arrays[0].size
+    m = n // arrays[0].size
     out[:,0] = np.repeat(arrays[0], int(m))
     if arrays[1:]:
         cartesian(arrays[1:], out=out[0:int(m),1:])
@@ -112,8 +112,8 @@ def find_nearest(df, valor, column_number):
 
 def returnValues(data, indexMenor,indexMayor):
 
-	rowMenor=data.iloc[indexMenor,0:12]
-	rowMayor=data.iloc[indexMayor,0:12]
+	rowMenor=data.iloc[indexMenor,0:25]
+	rowMayor=data.iloc[indexMayor,0:25]
 	return rowMenor, rowMayor
 
 def generarEntradasGeneticas(rowMenor, rowMayor, variablesPosibles):
@@ -121,15 +121,18 @@ def generarEntradasGeneticas(rowMenor, rowMayor, variablesPosibles):
 
 	for columna in columnasAUsar:
 		arrayColumna =[]
+		print(columna)
 		if(rowMayor.iloc[columna] == rowMenor.iloc[columna]):
 			arrayColumna.append(rowMayor.iloc[columna])
 			arrayValidacion.append(arrayColumna)
 		else:
-			if(columna>5):
-				arrayValidacion.append(valoresPosibles.iloc[columna-2])
+			if(columna>4):
+				arrayValidacion.append(variablesPosibles[columna-1])
+
 			else:
-				arrayValidacion.append(valoresPosibles.iloc[columna-1])
-	
+				arrayValidacion.append(variablesPosibles[columna])
+
+	print(arrayValidacion)
 	cartesian2= cartesian(arrayValidacion)
 	return cartesian2
 
