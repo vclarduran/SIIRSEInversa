@@ -33,8 +33,10 @@ import sys
 from itertools import product
 
 datos = "parcial.csv" #CAMBIAR EL CSV
-columnasAUsar = [1,2,3,4,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]
-#COLUMNA 5 = Power
+columnasAUsar = [0,1,2,3,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]
+variablesAPredecir = 1
+columnaPredecida = 4
+#COLUMNA 4 = Power
 
 
 
@@ -89,24 +91,29 @@ def cartesian(arrays, out=None):
             out[j*int(m):(j+1)*int(m),1:] = out[0:int(m),1:]
     return out
 
-def find_nearest(array,valor):
-	mayor=sys.maxsize
-	menor=0
-	idxMayor=0
-	idxMenor=0
-	for i in range(0, len(array)):
-		if (array[i][12]>menor and array[i][12]<=(valor*1)):
-			menor=array[i][12]
-			idxMenor=i
-		if (array[i][12]<mayor and array[i][12]>=(valor*1)):
-			mayor=array[i][12]
-			idxMayor=i
-	return idxMenor, idxMayor
+
+def find_nearest(df, valor, column_number):
+    print(df)
+    mayor = sys.maxsize
+    menor = 0
+    idxMayor = 0
+    idxMenor = 0
+
+    for i in range(len(df)):
+        if (df.iloc[i, column_number] > menor and df.iloc[i, column_number] <= (valor * 1)):
+            menor = df.iloc[i, column_number]
+            idxMenor = i
+        if (df.iloc[i, column_number] < mayor and df.iloc[i, column_number] >= (valor * 1)):
+            mayor = df.iloc[i, column_number]
+            idxMayor = i
+
+    return idxMenor, idxMayor
+
 
 def returnValues(data, indexMenor,indexMayor):
 
-	rowMenor=data[indexMenor,0:12]
-	rowMayor=data[indexMayor,0:12]
+	rowMenor=data.iloc[indexMenor,0:12]
+	rowMayor=data.iloc[indexMayor,0:12]
 	return rowMenor, rowMayor
 
 def generarEntradasGeneticas(rowMenor, rowMayor, variablesPosibles):
@@ -114,14 +121,14 @@ def generarEntradasGeneticas(rowMenor, rowMayor, variablesPosibles):
 
 	for columna in columnasAUsar:
 		arrayColumna =[]
-		if(rowMayor[columna] == rowMenor[columna]):
-			arrayColumna.append(rowMayor[columna])
+		if(rowMayor.iloc[columna] == rowMenor.iloc[columna]):
+			arrayColumna.append(rowMayor.iloc[columna])
 			arrayValidacion.append(arrayColumna)
 		else:
 			if(columna>5):
-				arrayValidacion.append(valoresPosibles[columna-2])
+				arrayValidacion.append(valoresPosibles.iloc[columna-2])
 			else:
-				arrayValidacion.append(valoresPosibles[columna-1])
+				arrayValidacion.append(valoresPosibles.iloc[columna-1])
 	
 	cartesian2= cartesian(arrayValidacion)
 	return cartesian2
@@ -135,9 +142,10 @@ def get_model(n_inputs, n_outputs): #Crea un modelo de dos capas
 	model.compile(loss='mse', optimizer='adam',metrics=['mse','mae','accuracy'])
 	return model
 
-def predict_inverse(valorReferencia, training_data_not_scaled, model): #Extrae todas las configuraciones posibles, si está dentro del rango la añade al array validado
+
+def predict_inverse(valorReferencia, training_data_not_scaled, model, posiblesConfiguraciones): #Extrae todas las configuraciones posibles, si está dentro del rango la añade al array validado
 	# valorReferencia=77583
-	indexMenor, indexMayor=find_nearest(training_data_not_scaled,valorReferencia)
+	indexMenor, indexMayor=find_nearest(training_data_not_scaled,valorReferencia, columnaPredecida)
 
 	rowDown, rowUp= returnValues(training_data_not_scaled,indexMenor,indexMayor)
 	geneticas = generarEntradasGeneticas(rowDown,rowUp, posiblesConfiguraciones)
@@ -165,7 +173,7 @@ def predict_inverse(valorReferencia, training_data_not_scaled, model): #Extrae t
 
 def evaluate_model(X, y): #Crea el modelo necesario con los datos que tenemos
 	results = list()
-	n_inputs, n_outputs = X.shape[1], y.shape[1]
+	n_inputs, n_outputs = len(columnasAUsar), variablesAPredecir
 	print("Inputs: "+str(n_inputs))
 	print("Outputs: "+str(n_outputs))
 	
@@ -178,16 +186,18 @@ def evaluate_model(X, y): #Crea el modelo necesario con los datos que tenemos
 	xtrain_scale = scaler_x.transform (X_train) 
 	print (scaler_x.fit (X_val)) 
 	xval_scale = scaler_x.transform (X_val)
-	print (scaler_y.fit (y_train)) 
-	ytrain_scale = scaler_y.transform (y_train)
-	
-	print (scaler_y.fit (y_val)) 
-	yval_scale = scaler_y.transform (y_val)
+	y_train = y_train.values.reshape(-1, 1)
+	y_val = y_val.values.reshape(-1, 1) 
+	print(scaler_y.fit(y_train))
+	ytrain_scale = scaler_y.transform(y_train)
+	print(scaler_y.fit(y_val))
+	yval_scale = scaler_y.transform(y_val)
 
 
 	model = get_model(n_inputs, n_outputs)
 	
-	history = model.fit(xtrain_scale, ytrain_scale, verbose=1, epochs=100, validation_data=(xval_scale,yval_scale))
+	#CAMBIAR EPOCHS
+	history = model.fit(xtrain_scale, ytrain_scale, verbose=1, epochs=10, validation_data=(xval_scale,yval_scale))
 	
 	return model
 
@@ -220,7 +230,7 @@ def valoresPosibles(datos):
 posiblesConfiguraciones = valoresPosibles(datos)
 
 dtype = [
-    ('Timestamp', 'datetime64'),
+    #('Timestamp', 'datetime64'),
     ('Wind speed (m/s)', 'float64'),
     ('Wind direction (°)', 'float64'),
     ('Nacelle position (°)', 'float64'),
@@ -250,15 +260,16 @@ dtype = [
 ]
 
 
-# Cargar los datos del archivo con punto y coma como delimitador
-training_data_not_scaled = genfromtxt(datos, delimiter=',', skip_header=1, dtype=dtype, invalid_raise=False)
-
+# Cargar los datos del archivo con punto y coma como delimitadorworkon 
+#training_data_not_scaled = np.genfromtxt(datos, delimiter=',', skip_header=1, dtype=dtype, invalid_raise=False)
+training_data_not_scaled = pd.read_csv(datos)
 print(training_data_not_scaled)
 
 
+
 # Acceder a las columnas que necesitas
-X = training_data_not_scaled[:, [1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]]
-y = training_data_not_scaled[:, 5]  # Columna 5 es la variable a predecir
+X = training_data_not_scaled.iloc[:, columnasAUsar]
+y = training_data_not_scaled.iloc[:, 4]  # Columna 4 es la variable a predecir
 
 
 
