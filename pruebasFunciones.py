@@ -65,3 +65,34 @@ for i in range(0, len(rowMenor)):
 
 
 
+def find_nearest(array,valor):
+	mayor=sys.maxsize
+	menor=0
+	idxMayor=0
+	idxMenor=0
+	for i in range(0, len(array)):
+		if (array.iloc[i][12]>menor and array.iloc[i][12]<=(valor*1)):
+			menor=array.iloc[i][12]
+			idxMenor=i
+		if (array.iloc[i][12]<mayor and array.iloc[i][12]>=(valor*1)):
+			mayor=array.iloc[i][12]
+			idxMayor=i
+	return idxMenor, idxMayor
+
+
+
+
+ arrays = [np.asarray(x) for x in arrays]
+    dtype = arrays[0].dtype
+    print(dtype)
+
+    n = np.prod([x.size for x in arrays])
+    if out is None:
+        out = np.zeros([n, len(arrays)], dtype=np.float64)
+
+    m = n // arrays[0].size
+    out[:, 0] = np.repeat(arrays[0], m)
+    if arrays[1:]:
+        cartesian(arrays[1:], out=out[:m, 1:])
+        for j in range(1, arrays[0].size):
+            out[j * m:(j + 1) * m, 1:] = out[:m, 1:]
