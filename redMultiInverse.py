@@ -193,14 +193,14 @@ def valoresPosibles(datos):
 	variablesPosibles=[]
 
 	for columna in columnasAUsar:
-		min = round((minimos.iloc[columna]*0.95),12)
-		max = round((maximos.iloc[columna]*1.05),12) 
+		min = round((minimos.iloc[columna]*0.95),2)
+		max = round((maximos.iloc[columna]*1.05),2) 
 		valor = min
 		valoresDeVariable = []
 		valoresDeVariable.append(valor) 
 		while(valor < max):
-			valoresDeVariable.append(round(valor,12))
-			valor+=0.1
+			valoresDeVariable.append(round(valor,2))
+			valor+=0.01
 		variablesPosibles.append(valoresDeVariable)    
 	return variablesPosibles
 
