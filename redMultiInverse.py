@@ -45,30 +45,26 @@ import numpy as np
 import itertools
 import numpy as np
 
-def cartesian(arrays):
-    """
-    Generate a cartesian product of input arrays.
-
-    Parameters
-    ----------
-    arrays : list of array-like
-        1-D arrays to form the cartesian product of.
-
-    Returns
-    -------
-    out : ndarray
-        2-D array of shape (M, len(arrays)) containing cartesian products
-        formed of input arrays.
-    """
-
-    arrays = [np.asarray(x) for x in arrays]
-    dtype = arrays[0].dtype
-
-    product = list(itertools.product(*arrays))
-    out = np.array(product, dtype=dtype)
-    print(out)
-    
-    return out
+def cartesian(arrays, out = None):
+	arrays = [np.asarray(x) for x in arrays]
+	dtype = arrays[0].dtype
+	print(dtype)
+	
+	n = np.prod([x.size for x in arrays])
+	print(n)
+	if(n<0): n = n*(-1)
+	if out is None:
+		out = np.zeros([n, len(arrays)], dtype=np.float64)
+	
+	m = n // arrays[0].size
+	out[:, 0] = np.repeat(arrays[0], m)
+	if arrays[1:]:
+		cartesian(arrays[1:], out=out[:m, 1:])
+		for j in range(1, arrays[0].size):
+			out[j * m:(j + 1) * m, 1:] = out[:m, 1:]
+	
+	print(out)
+	return out
 
 
 

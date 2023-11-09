@@ -96,3 +96,10 @@ def find_nearest(array,valor):
         cartesian(arrays[1:], out=out[:m, 1:])
         for j in range(1, arrays[0].size):
             out[j * m:(j + 1) * m, 1:] = out[:m, 1:]
+	    
+
+	arrays = [np.asarray(x) for x in arrays]
+    dtype = arrays[0].dtype
+
+    product = list(itertools.product(*arrays))
+    out = np.array(product, dtype=dtype)
