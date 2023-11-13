@@ -36,17 +36,23 @@ columnaPredecida = 4
 #COLUMNA 4 = Power
 
 
+import os
+
 def cartesian(arrays, out=None):
     arrays = [np.asarray(x) for x in arrays]
     dtype = arrays[0].dtype
-    print(dtype)
 
     n = np.prod([x.size for x in arrays])
-    print(n)
+
     if n < 0:
         n = n * (-1)
+
+    # Specify a relative path for the file in the current working directory
+    relative_path = 'output.dat'
+    out_path = os.path.abspath(relative_path)
+
     if out is None:
-        out = np.memmap('output.dat', shape=(n, len(arrays)), dtype=np.float64, mode='w+')
+        out = np.memmap(out_path, shape=(n, len(arrays)), dtype=np.float64, mode='w')
 
     m = n // arrays[0].size
     out[:, 0] = np.repeat(arrays[0], m)
@@ -54,11 +60,11 @@ def cartesian(arrays, out=None):
     def fill_row(j):
         out[j * m:(j + 1) * m, 1:] = out[:m, 1:]
 
-
-    list(map(fill_row, range(1, arrays[0].size+1)))
+    list(map(fill_row, range(1, arrays[0].size)))
 
     print(out)
     return out
+
 
 def find_nearest(df, valor, column_number):
     print(df)
@@ -197,10 +203,7 @@ def valoresPosibles(datos):
         print(f"Number of iterations for Columna {columna}: {len(valoresDeVariable)}")
         variablesPosibles.append(valoresDeVariable)
 
-    print(variablesPosibles)
     return variablesPosibles
-
-
 
 
 #EMPIEZA EL MAIN
