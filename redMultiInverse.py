@@ -45,26 +45,29 @@ import numpy as np
 import itertools
 import numpy as np
 
-def cartesian(arrays, out = None):
-	arrays = [np.asarray(x) for x in arrays]
-	dtype = arrays[0].dtype
-	print(dtype)
-	
-	n = np.prod([x.size for x in arrays])
-	print(n)
-	if(n<0): n = n*(-1)
-	if out is None:
-		out = np.zeros([n, len(arrays)], dtype=np.float64)
-	
-	m = n // arrays[0].size
-	out[:, 0] = np.repeat(arrays[0], m)
-	if arrays[1:]:
-		cartesian(arrays[1:], out=out[:m, 1:])
-		for j in range(1, arrays[0].size):
-			out[j * m:(j + 1) * m, 1:] = out[:m, 1:]
-	
-	print(out)
-	return out
+def cartesian(arrays, out=None):
+    arrays = [np.asarray(x) for x in arrays]
+    dtype = arrays[0].dtype
+    print(dtype)
+
+    n = np.prod([x.size for x in arrays])
+    print(n)
+    if n < 0:
+        n = n * (-1)
+    if out is None:
+        out = np.memmap('output.dat', shape=(n, len(arrays)), dtype=np.float64, mode='w+')
+
+    m = n // arrays[0].size
+    out[:, 0] = np.repeat(arrays[0], m)
+
+    def fill_row(j):
+        out[j * m:(j + 1) * m, 1:] = out[:m, 1:]
+
+
+    list(map(fill_row, range(1, arrays[0].size)))
+
+    print(out)
+    return out
 
 
 
@@ -241,6 +244,7 @@ dtype = [
 
 # Cargar los datos del archivo con punto y coma como delimitadorworkon 
 #training_data_not_scaled = np.genfromtxt(datos, delimiter=',', skip_header=1, dtype=dtype, invalid_raise=False)
+print("1")
 training_data_not_scaled = pd.read_csv(datos)
 print(training_data_not_scaled)
 
