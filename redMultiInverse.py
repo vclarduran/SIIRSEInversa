@@ -6,18 +6,15 @@ from keras.layers import Dense
 import numpy as np
 import math
 import matplotlib.pyplot as plt
-from keras.models import Sequential
 from keras.layers.core import Dense
 import tensorflow as tf
 from numpy import genfromtxt
-from keras.layers import LSTM,Dense ,Dropout
+from keras.layers import Dropout
 
 from random import random
 from numpy import array
 from numpy import cumsum
-from keras.models import Sequential
 from keras.layers import LSTM
-from keras.layers import Dense
 from keras.layers import TimeDistributed
 from keras.layers import Bidirectional
 from sklearn import preprocessing
@@ -39,12 +36,6 @@ columnaPredecida = 4
 #COLUMNA 4 = Power
 
 
-
-import numpy as np
-
-import itertools
-import numpy as np
-
 def cartesian(arrays, out=None):
     arrays = [np.asarray(x) for x in arrays]
     dtype = arrays[0].dtype
@@ -64,13 +55,10 @@ def cartesian(arrays, out=None):
         out[j * m:(j + 1) * m, 1:] = out[:m, 1:]
 
 
-    list(map(fill_row, range(1, arrays[0].size)))
+    list(map(fill_row, range(1, arrays[0].size+1)))
 
     print(out)
     return out
-
-
-
 
 def find_nearest(df, valor, column_number):
     print(df)
@@ -88,7 +76,6 @@ def find_nearest(df, valor, column_number):
             idxMayor = i
 
     return idxMenor, idxMayor
-
 
 def returnValues(data, indexMenor,indexMayor):
 
@@ -123,7 +110,6 @@ def get_model(n_inputs, n_outputs): #Crea un modelo de dos capas
 	model.add(Dense(n_outputs, activation="linear"))
 	model.compile(loss='mse', optimizer='adam',metrics=['mse','mae','accuracy'])
 	return model
-
 
 def predict_inverse(valorReferencia, training_data_not_scaled, model, posiblesConfiguraciones): #Extrae todas las configuraciones posibles, si está dentro del rango la añade al array validado
 	# valorReferencia=77583
@@ -184,28 +170,37 @@ def evaluate_model(X, y): #Crea el modelo necesario con los datos que tenemos
 	return model
 
 def valoresPosibles(datos):
-	#lectura csv
-	df = pd.read_csv(os.path.join(datos), delimiter=",")
+    print("Start of valoresPosibles")
 
-	#buscar min y max
-	minimos = df.min()
-	maximos = df.max()
+    # Load CSV
+    df = pd.read_csv(os.path.join(datos), delimiter=",")
 
-	#para cada columna
+    # Find min and max
+    minimos = df.min()
+    maximos = df.max()
 
-	variablesPosibles=[]
+    # Initialize list for possible values
+    variablesPosibles = []
 
-	for columna in columnasAUsar:
-		min = round((minimos.iloc[columna]*0.95),2)
-		max = round((maximos.iloc[columna]*1.05),2) 
-		valor = min
-		valoresDeVariable = []
-		valoresDeVariable.append(valor) 
-		while(valor < max):
-			valoresDeVariable.append(round(valor,2))
-			valor+=0.01
-		variablesPosibles.append(valoresDeVariable)    
-	return variablesPosibles
+    for columna in columnasAUsar:
+        min_value = round((minimos.iloc[columna] * 0.95), 2)
+        max_value = round((maximos.iloc[columna] * 1.05), 2)
+        valor = min_value
+        valoresDeVariable = [valor]
+
+        print(f"Columna: {columna}, Min: {min_value}, Max: {max_value}")
+
+        while valor < max_value:
+            valoresDeVariable.append(round(valor, 2))
+            valor += 0.01
+
+        print(f"Number of iterations for Columna {columna}: {len(valoresDeVariable)}")
+        variablesPosibles.append(valoresDeVariable)
+
+    print(variablesPosibles)
+    return variablesPosibles
+
+
 
 
 #EMPIEZA EL MAIN
@@ -238,7 +233,7 @@ dtype = [
     ('Xpos', 'int'),
     ('Ypos', 'int'),
     ('Zpos', 'int'),
-    ('Turbine', 'U10')  # 'U10' para cadenas de hasta 10 caracteres
+    ('Turbine', 'U10') 
 ]
 
 
