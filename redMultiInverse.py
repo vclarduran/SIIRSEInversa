@@ -36,8 +36,6 @@ columnaPredecida = 4
 #COLUMNA 4 = Power
 
 
-import os
-
 def cartesian(arrays, out=None):
     arrays = [np.asarray(x) for x in arrays]
     dtype = arrays[0].dtype
@@ -52,7 +50,7 @@ def cartesian(arrays, out=None):
     out_path = os.path.abspath(relative_path)
 
     if out is None:
-        out = np.memmap(out_path, shape=(n, len(arrays)), dtype=np.float64, mode='w')
+        out = np.memmap(out_path, shape=(n, len(arrays)), dtype=np.float64, mode='r+')
 
     m = n // arrays[0].size
     out[:, 0] = np.repeat(arrays[0], m)
@@ -64,7 +62,6 @@ def cartesian(arrays, out=None):
 
     print(out)
     return out
-
 
 def find_nearest(df, valor, column_number):
     print(df)
