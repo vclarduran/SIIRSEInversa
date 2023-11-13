@@ -50,7 +50,7 @@ def cartesian(arrays, out=None):
     out_path = os.path.abspath(relative_path)
 
     if out is None:
-        out = np.memmap(out_path, shape=(n, len(arrays)), dtype=np.float64, mode='r+')
+        out = np.memmap(out_path, shape=(n, len(arrays)), dtype=np.float64, mode='w+')
 
     m = n // arrays[0].size
     out[:, 0] = np.repeat(arrays[0], m)
