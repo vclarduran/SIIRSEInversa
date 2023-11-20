@@ -24,6 +24,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import RepeatedKFold
 
+from concurrent.futures import ProcessPoolExecutor
+
 import pandas as pd
 import os
 import sys
@@ -36,32 +38,42 @@ columnaPredecida = 4
 #COLUMNA 4 = Power
 
 
-def cartesian(arrays, out=None):
+
+def generate_chunk(args):
+    arrays, chunk_size, out_dir, chunk_num = args
+    start_idx = chunk_num * chunk_size
+    end_idx = min((chunk_num + 1) * chunk_size, len(arrays[0]))
+
+    chunk_data = np.repeat(arrays[0][start_idx:end_idx], len(arrays[0]) // len(arrays[0]))
+
+    for i in range(1, len(arrays)):
+        repeat_size = np.prod([x.size for x in arrays[:i]])
+        chunk_data = np.column_stack((chunk_data, np.tile(np.repeat(arrays[i], len(arrays[0]) // repeat_size), repeat_size)))
+
+    chunk_filename = os.path.join(out_dir, f'chunk_{chunk_num + 1}.dat')
+    np.savetxt(chunk_filename, chunk_data, fmt='%0.2f', delimiter=',')
+
+def cartesian(arrays, chunk_size=50, out_dir='output_files'):
     arrays = [np.asarray(x) for x in arrays]
     dtype = arrays[0].dtype
 
-    n = np.prod([x.size for x in arrays])
+    n = len(arrays[0])
 
-    if n < 0:
-        n = n * (-1)
+    # Create the output directory if it doesn't exist
+    os.makedirs(out_dir, exist_ok=True)
 
-    # Specify a relative path for the file in the current working directory
-    relative_path = 'output.dat'
-    out_path = os.path.abspath(relative_path)
+    # Calculate the number of chunks needed
+    num_chunks = n // chunk_size
+    if n % chunk_size != 0:
+        num_chunks += 1
 
-    if out is None:
-        out = np.memmap(out_path, shape=(n, len(arrays)), dtype=np.float64, mode='w+')
+    # Use parallel processing to generate and save chunks concurrently
+    with ProcessPoolExecutor() as executor:
+        executor.map(generate_chunk, [(arrays, chunk_size, out_dir, i) for i in range(num_chunks)])
 
-    m = n // arrays[0].size
-    out[:, 0] = np.repeat(arrays[0], m)
-
-    def fill_row(j):
-        out[j * m:(j + 1) * m, 1:] = out[:m, 1:]
-
-    list(map(fill_row, range(1, arrays[0].size)))
-
-    print(out)
-    return out
+    # Return a list of filenames for the chunks
+    chunk_filenames = [os.path.join(out_dir, f'chunk_{i + 1}.dat') for i in range(num_chunks)]
+    return chunk_filenames
 
 def find_nearest(df, valor, column_number):
     print(df)
