@@ -26,6 +26,8 @@ from sklearn.model_selection import RepeatedKFold
 
 from concurrent.futures import ProcessPoolExecutor
 
+import csv
+
 import pandas as pd
 import os
 import sys
@@ -56,21 +58,21 @@ def generate_chunk(args):
 def cartesian(arrays, chunk_size=50, out_dir='output_files'):
     arrays = [np.asarray(x) for x in arrays]
     dtype = arrays[0].dtype
-
+    print("1")
     n = len(arrays[0])
-
+    print("2")
     # Create the output directory if it doesn't exist
     os.makedirs(out_dir, exist_ok=True)
-
+    print("3")
     # Calculate the number of chunks needed
     num_chunks = n // chunk_size
     if n % chunk_size != 0:
         num_chunks += 1
-
+    print("4")
     # Use parallel processing to generate and save chunks concurrently
     with ProcessPoolExecutor() as executor:
         executor.map(generate_chunk, [(arrays, chunk_size, out_dir, i) for i in range(num_chunks)])
-
+    print("5")
     # Return a list of filenames for the chunks
     chunk_filenames = [os.path.join(out_dir, f'chunk_{i + 1}.dat') for i in range(num_chunks)]
     return chunk_filenames
@@ -114,8 +116,8 @@ def generarEntradasGeneticas(rowMenor, rowMayor, variablesPosibles):
 			else:
 				arrayValidacion.append(variablesPosibles[columna])
 
-	cartesian2= cartesian(arrayValidacion)
-	return cartesian2
+	filenames = cartesian(arrayValidacion)
+	return filenames
 
 def get_model(n_inputs, n_outputs): #Crea un modelo de dos capas 
 	model = Sequential()
@@ -126,33 +128,37 @@ def get_model(n_inputs, n_outputs): #Crea un modelo de dos capas
 	model.compile(loss='mse', optimizer='adam',metrics=['mse','mae','accuracy'])
 	return model
 
-def predict_inverse(valorReferencia, training_data_not_scaled, model, posiblesConfiguraciones): #Extrae todas las configuraciones posibles, si está dentro del rango la añade al array validado
-	# valorReferencia=77583
-	indexMenor, indexMayor=find_nearest(training_data_not_scaled,valorReferencia, columnaPredecida)
+def predict_inverse(valorReferencia, training_data_not_scaled, model, posiblesConfiguraciones):
+    # valorReferencia = 77583
+    indexMenor, indexMayor = find_nearest(training_data_not_scaled, valorReferencia, columnaPredecida)
 
-	rowDown, rowUp= returnValues(training_data_not_scaled,indexMenor,indexMayor)
-	geneticas = generarEntradasGeneticas(rowDown,rowUp, posiblesConfiguraciones)
+    rowDown, rowUp = returnValues(training_data_not_scaled, indexMenor, indexMayor)
+    files = generarEntradasGeneticas(rowDown, rowUp, posiblesConfiguraciones)
 
-	scaler_x = MinMaxScaler () 
-	scaler_y = MinMaxScaler ()
+    print("generadas")
 
-	arrayValidas=[]
-	for linea in geneticas:
-		
-		newX = asarray([linea])
-		geneticas_scaled = scaler_x.transform (newX)
+    scaler_x = MinMaxScaler() 
+    scaler_y = MinMaxScaler()
 
-		yhat=model.predict(geneticas_scaled)
-		yInverse=scaler_y.inverse_transform(yhat)
-		if(yInverse[0][0] >(valorReferencia*0.95)and yInverse[0][0]<(valorReferencia*1.05)and yInverse[0][1]>0 and yInverse[0][1]<1 and yInverse[0][2] >0 and yInverse[0][2] <1):
-			
-			geneticaSinEscalar=newX
-			listaGenetica=(geneticaSinEscalar[0]).tolist()
-			listaGenetica.append(yInverse[0][0])
-			listaGenetica.append(yInverse[0][1] )
-			listaGenetica.append(yInverse[0][2] )
-			arrayValidas.append(listaGenetica)
-	return arrayValidas
+    arrayValidas = []
+    for file in files:
+        with open(file, 'r') as csv_file:
+            csv_reader = csv.reader(csv_file)
+            for linea in csv_reader:
+                newX = asarray([linea])
+                print(linea)
+                geneticas_scaled = scaler_x.transform(newX)
+                yhat = model.predict(geneticas_scaled)
+                yInverse = scaler_y.inverse_transform(yhat)
+                if (yInverse[0][0] > (valorReferencia * 0.95) and yInverse[0][0] < (valorReferencia * 1.05) and
+                        yInverse[0][1] > 0 and yInverse[0][1] < 1 and yInverse[0][2] > 0 and yInverse[0][2] < 1):
+                    geneticaSinEscalar = newX
+                    listaGenetica = (geneticaSinEscalar[0]).tolist()
+                    listaGenetica.append(yInverse[0][0])
+                    listaGenetica.append(yInverse[0][1])
+                    listaGenetica.append(yInverse[0][2])
+                    arrayValidas.append(listaGenetica)
+    return arrayValidas
 
 def evaluate_model(X, y): #Crea el modelo necesario con los datos que tenemos
 	results = list()
