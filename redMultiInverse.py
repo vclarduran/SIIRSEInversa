@@ -40,7 +40,6 @@ columnaPredecida = 4
 #COLUMNA 4 = Power
 
 
-
 def generate_chunk(args):
     arrays, chunk_size, out_dir, chunk_num = args
     start_idx = chunk_num * chunk_size
@@ -55,7 +54,7 @@ def generate_chunk(args):
     chunk_filename = os.path.join(out_dir, f'chunk_{chunk_num + 1}.dat')
     np.savetxt(chunk_filename, chunk_data, fmt='%0.2f', delimiter=',')
 
-def cartesian(arrays, chunk_size=50, out_dir='output_files'):
+def cartesian(arrays, chunk_size=50, out_dir='out_dir'):
     arrays = [np.asarray(x) for x in arrays]
     dtype = arrays[0].dtype
     print("1")
@@ -76,6 +75,9 @@ def cartesian(arrays, chunk_size=50, out_dir='output_files'):
     # Return a list of filenames for the chunks
     chunk_filenames = [os.path.join(out_dir, f'chunk_{i + 1}.dat') for i in range(num_chunks)]
     return chunk_filenames
+
+
+
 
 def find_nearest(df, valor, column_number):
     print(df)
