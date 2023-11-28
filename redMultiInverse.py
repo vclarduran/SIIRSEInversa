@@ -40,42 +40,35 @@ columnaPredecida = 4
 #COLUMNA 4 = Power
 
 
-def generate_chunk(args):
-    arrays, chunk_size, out_dir, chunk_num = args
-    start_idx = chunk_num * chunk_size
-    end_idx = min((chunk_num + 1) * chunk_size, len(arrays[0]))
 
-    chunk_data = np.repeat(arrays[0][start_idx:end_idx], len(arrays[0]) // len(arrays[0]))
+def cartesian(arrays):
+    output_csv = "output.csv"
+    print("Entering cartesian_to_csv function")
 
-    for i in range(1, len(arrays)):
-        repeat_size = np.prod([x.size for x in arrays[:i]])
-        chunk_data = np.column_stack((chunk_data, np.tile(np.repeat(arrays[i], len(arrays[0]) // repeat_size), repeat_size)))
+    # Get the current working directory
+    current_directory = os.getcwd()
+    print(f"Current working directory: {current_directory}")
 
-    chunk_filename = os.path.join(out_dir, f'chunk_{chunk_num + 1}.dat')
-    np.savetxt(chunk_filename, chunk_data, fmt='%0.2f', delimiter=',')
+    # Combine the current directory with the output CSV file name
+    output_path = os.path.join(current_directory, output_csv)
+    print(f"Output path for CSV file: {output_path}")
 
-def cartesian(arrays, chunk_size=50, out_dir='out_dir'):
-    arrays = [np.asarray(x) for x in arrays]
-    dtype = arrays[0].dtype
-    print("1")
-    n = len(arrays[0])
-    print("2")
-    # Create the output directory if it doesn't exist
-    os.makedirs(out_dir, exist_ok=True)
-    print("3")
-    # Calculate the number of chunks needed
-    num_chunks = n // chunk_size
-    if n % chunk_size != 0:
-        num_chunks += 1
-    print("4")
-    # Use parallel processing to generate and save chunks concurrently
-    with ProcessPoolExecutor() as executor:
-        executor.map(generate_chunk, [(arrays, chunk_size, out_dir, i) for i in range(num_chunks)])
-    print("5")
-    # Return a list of filenames for the chunks
-    chunk_filenames = [os.path.join(out_dir, f'chunk_{i + 1}.dat') for i in range(num_chunks)]
-    return chunk_filenames
+    # Write the Cartesian product directly to the CSV file
+    with open(output_path, 'w', newline='') as csvfile:
+        csv_writer = csv.writer(csvfile)
 
+        # Write header based on the number of arrays
+        header_row = [f'Array_{i+1}' for i in range(len(arrays))]
+        print(f"Writing header row: {header_row}")
+        csv_writer.writerow(header_row)
+
+        # Generate and write each row of the Cartesian product
+        for cartesian_row in product(*arrays):
+            print(f"Writing row: {cartesian_row}")
+            csv_writer.writerow(cartesian_row)
+
+    print(f"CSV file '{output_path}' created")
+    return output_path
 
 
 
@@ -118,8 +111,8 @@ def generarEntradasGeneticas(rowMenor, rowMayor, variablesPosibles):
 			else:
 				arrayValidacion.append(variablesPosibles[columna])
 
-	filenames = cartesian(arrayValidacion)
-	return filenames
+	filename = cartesian(arrayValidacion)
+	return filename
 
 def get_model(n_inputs, n_outputs): #Crea un modelo de dos capas 
 	model = Sequential()
@@ -135,31 +128,35 @@ def predict_inverse(valorReferencia, training_data_not_scaled, model, posiblesCo
     indexMenor, indexMayor = find_nearest(training_data_not_scaled, valorReferencia, columnaPredecida)
 
     rowDown, rowUp = returnValues(training_data_not_scaled, indexMenor, indexMayor)
-    files = generarEntradasGeneticas(rowDown, rowUp, posiblesConfiguraciones)
+    file = generarEntradasGeneticas(rowDown, rowUp, posiblesConfiguraciones)
 
     print("generadas")
 
     scaler_x = MinMaxScaler() 
     scaler_y = MinMaxScaler()
+    print("despues de MinMaxScaler")
 
     arrayValidas = []
-    for file in files:
-        with open(file, 'r') as csv_file:
-            csv_reader = csv.reader(csv_file)
-            for linea in csv_reader:
-                newX = asarray([linea])
-                print(linea)
-                geneticas_scaled = scaler_x.transform(newX)
-                yhat = model.predict(geneticas_scaled)
-                yInverse = scaler_y.inverse_transform(yhat)
-                if (yInverse[0][0] > (valorReferencia * 0.95) and yInverse[0][0] < (valorReferencia * 1.05) and
-                        yInverse[0][1] > 0 and yInverse[0][1] < 1 and yInverse[0][2] > 0 and yInverse[0][2] < 1):
-                    geneticaSinEscalar = newX
-                    listaGenetica = (geneticaSinEscalar[0]).tolist()
-                    listaGenetica.append(yInverse[0][0])
-                    listaGenetica.append(yInverse[0][1])
-                    listaGenetica.append(yInverse[0][2])
-                    arrayValidas.append(listaGenetica)
+
+    print(f"Trying to open file: {file}")
+    with open(file, 'r') as csv_file:
+        csv_reader = csv.reader(csv_file)
+        for linea in csv_reader:
+            newX = asarray([linea])
+            print(linea)
+            geneticas_scaled = scaler_x.transform(newX)
+            yhat = model.predict(geneticas_scaled)
+            yInverse = scaler_y.inverse_transform(yhat)
+
+            if (yInverse[0][0] > (valorReferencia * 0.95) and yInverse[0][0] < (valorReferencia * 1.05) and
+                    yInverse[0][1] > 0 and yInverse[0][1] < 1 and yInverse[0][2] > 0 and yInverse[0][2] < 1):
+                geneticaSinEscalar = newX
+                listaGenetica = geneticaSinEscalar[0].tolist()
+                listaGenetica.append(yInverse[0][0])
+                listaGenetica.append(yInverse[0][1])
+                listaGenetica.append(yInverse[0][2])
+                arrayValidas.append(listaGenetica)
+
     return arrayValidas
 
 def evaluate_model(X, y): #Crea el modelo necesario con los datos que tenemos
