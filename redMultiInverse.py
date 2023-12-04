@@ -40,8 +40,7 @@ columnaPredecida = 4
 #COLUMNA 4 = Power
 
 
-
-def cartesian(arrays):
+def cartesian_to_csv(arrays):
     output_csv = "output.csv"
     print("Entering cartesian_to_csv function")
 
@@ -53,19 +52,16 @@ def cartesian(arrays):
     output_path = os.path.join(current_directory, output_csv)
     print(f"Output path for CSV file: {output_path}")
 
+    contador = 0
     # Write the Cartesian product directly to the CSV file
     with open(output_path, 'w', newline='') as csvfile:
         csv_writer = csv.writer(csvfile)
-
-        # Write header based on the number of arrays
-        header_row = [f'Array_{i+1}' for i in range(len(arrays))]
-        print(f"Writing header row: {header_row}")
-        csv_writer.writerow(header_row)
 
         # Generate and write each row of the Cartesian product
         for cartesian_row in product(*arrays):
             print(f"Writing row: {cartesian_row}")
             csv_writer.writerow(cartesian_row)
+            contador += 1
 
     print(f"CSV file '{output_path}' created")
     return output_path
