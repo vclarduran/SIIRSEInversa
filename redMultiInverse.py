@@ -24,8 +24,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import RepeatedKFold
 
-from concurrent.futures import ProcessPoolExecutor
-
 import csv
 
 import pandas as pd
@@ -40,10 +38,10 @@ columnaPredecida = 4
 #COLUMNA 4 = Power
 
 
-def cartesian_to_csv(arrays):
+def cartesian(arrays):
     output_csv = "output.csv"
     print("Entering cartesian_to_csv function")
-
+ 
     # Get the current working directory
     current_directory = os.getcwd()
     print(f"Current working directory: {current_directory}")
@@ -52,21 +50,16 @@ def cartesian_to_csv(arrays):
     output_path = os.path.join(current_directory, output_csv)
     print(f"Output path for CSV file: {output_path}")
 
-    contador = 0
     # Write the Cartesian product directly to the CSV file
     with open(output_path, 'w', newline='') as csvfile:
         csv_writer = csv.writer(csvfile)
-
         # Generate and write each row of the Cartesian product
         for cartesian_row in product(*arrays):
             print(f"Writing row: {cartesian_row}")
             csv_writer.writerow(cartesian_row)
-            contador += 1
 
     print(f"CSV file '{output_path}' created")
     return output_path
-
-
 
 def find_nearest(df, valor, column_number):
     print(df)
