@@ -35,6 +35,7 @@ datos = "parcial.csv" #CAMBIAR EL CSV
 columnasAUsar = [0,1,2,3,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]
 variablesAPredecir = 1
 columnaPredecida = 4
+columnasTraining = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]
 #COLUMNA 4 = Power
 
 
@@ -50,13 +51,20 @@ def cartesian(arrays):
     output_path = os.path.join(current_directory, output_csv)
     print(f"Output path for CSV file: {output_path}")
 
+    contador = 0
+
     # Write the Cartesian product directly to the CSV file
     with open(output_path, 'w', newline='') as csvfile:
         csv_writer = csv.writer(csvfile)
+        
         # Generate and write each row of the Cartesian product
         for cartesian_row in product(*arrays):
-            print(f"Writing row: {cartesian_row}")
-            csv_writer.writerow(cartesian_row)
+            if (contador < 30):
+                print(f"Writing row: {cartesian_row}")
+                csv_writer.writerow(cartesian_row)
+                contador = contador +1
+            else:
+                break    
 
     print(f"CSV file '{output_path}' created")
     return output_path
@@ -113,39 +121,47 @@ def get_model(n_inputs, n_outputs): #Crea un modelo de dos capas
 	return model
 
 def predict_inverse(valorReferencia, training_data_not_scaled, model, posiblesConfiguraciones):
-    # valorReferencia = 77583
+    # Find nearest indices
     indexMenor, indexMayor = find_nearest(training_data_not_scaled, valorReferencia, columnaPredecida)
 
+    # Return values corresponding to indices
     rowDown, rowUp = returnValues(training_data_not_scaled, indexMenor, indexMayor)
+
+    # Generate input configurations
     file = generarEntradasGeneticas(rowDown, rowUp, posiblesConfiguraciones)
 
-    print("generadas")
-
-    scaler_x = MinMaxScaler() 
-    scaler_y = MinMaxScaler()
-    print("despues de MinMaxScaler")
+    print("Generated input configurations")
 
     arrayValidas = []
+    scaler_x = MinMaxScaler() 
+    scaler_y = MinMaxScaler()
+
+    scaler_x.fit(training_data_not_scaled.iloc[:, columnasAUsar])
+    scaler_y.fit(training_data_not_scaled.iloc[:, 4].values.reshape(-1, 1))
+
 
     print(f"Trying to open file: {file}")
     with open(file, 'r') as csv_file:
         csv_reader = csv.reader(csv_file)
+
         for linea in csv_reader:
             newX = asarray([linea])
-            print(linea)
             geneticas_scaled = scaler_x.transform(newX)
+
             yhat = model.predict(geneticas_scaled)
             yInverse = scaler_y.inverse_transform(yhat)
-
-            if (yInverse[0][0] > (valorReferencia * 0.95) and yInverse[0][0] < (valorReferencia * 1.05) and
-                    yInverse[0][1] > 0 and yInverse[0][1] < 1 and yInverse[0][2] > 0 and yInverse[0][2] < 1):
+            if (
+                (yInverse[0][0] > (valorReferencia * 0.2) and yInverse[0][0] < (valorReferencia * 20)) and
+                (yInverse[0][1] > 0 and yInverse[0][1] < 1) and
+                (yInverse[0][2] > 0 and yInverse[0][2] < 1)
+            ):
                 geneticaSinEscalar = newX
                 listaGenetica = geneticaSinEscalar[0].tolist()
                 listaGenetica.append(yInverse[0][0])
                 listaGenetica.append(yInverse[0][1])
                 listaGenetica.append(yInverse[0][2])
                 arrayValidas.append(listaGenetica)
-
+    
     return arrayValidas
 
 def evaluate_model(X, y): #Crea el modelo necesario con los datos que tenemos
