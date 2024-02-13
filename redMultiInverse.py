@@ -283,3 +283,4 @@ modelo = evaluate_model(X, y)
 valorReferencia=77583
 arrayValidas=predict_inverse(valorReferencia,training_data_not_scaled,modelo, posiblesConfiguraciones)
 print(arrayValidas)
+print("ACABADO")
