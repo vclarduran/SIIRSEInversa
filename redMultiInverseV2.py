@@ -149,12 +149,19 @@ def predict_inverse(valorReferencia, training_data_not_scaled, model, posiblesCo
             newX = asarray([linea])
             geneticas_scaled = scaler_x.transform(newX)
 
-            prediction = model.predict(geneticas_scaled)
-
-            print("prediccion: " + str(prediction))
-            
-            if (prediction > (valorReferencia * 0.2) and prediction < (valorReferencia * 20)):
-                arrayValidas.append(linea)
+            yhat = model.predict(geneticas_scaled)
+            yInverse = scaler_y.inverse_transform(yhat)
+            if (
+                (yInverse[0][0] > (valorReferencia * 0.2) and yInverse[0][0] < (valorReferencia * 20)) and
+                (yInverse[0][1] > 0 and yInverse[0][1] < 1) and
+                (yInverse[0][2] > 0 and yInverse[0][2] < 1)
+            ):
+                geneticaSinEscalar = newX
+                listaGenetica = geneticaSinEscalar[0].tolist()
+                listaGenetica.append(yInverse[0][0])
+                listaGenetica.append(yInverse[0][1])
+                listaGenetica.append(yInverse[0][2])
+                arrayValidas.append(listaGenetica)
     
     return arrayValidas
 
@@ -184,7 +191,7 @@ def evaluate_model(X, y): #Crea el modelo necesario con los datos que tenemos
 	model = get_model(n_inputs, n_outputs)
 	
 	#CAMBIAR EPOCHS
-	history = model.fit(xtrain_scale, ytrain_scale, verbose=1, epochs=100, validation_data=(xval_scale,yval_scale))
+	history = model.fit(xtrain_scale, ytrain_scale, verbose=1, epochs=10, validation_data=(xval_scale,yval_scale))
 	
 	return model
 
@@ -253,7 +260,7 @@ dtype = [
 ]
 
 
-# Cargar los datos del archivo con punto y coma como delimitador
+# Cargar los datos del archivo con punto y coma como delimitadorworkon 
 #training_data_not_scaled = np.genfromtxt(datos, delimiter=',', skip_header=1, dtype=dtype, invalid_raise=False)
 print("1")
 training_data_not_scaled = pd.read_csv(datos)
