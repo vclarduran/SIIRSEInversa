@@ -115,7 +115,6 @@ def get_model(n_inputs, n_outputs): #Crea un modelo de dos capas
 	model = Sequential()
 	model.add(Dense(20, input_dim=n_inputs, kernel_initializer='he_uniform', activation='relu'))
 	model.add(Dense(13626, activation='relu'))
-	model.add(Dense(13626, activation='relu'))
      
 
 	model.add(Dense(n_outputs, activation="linear"))
