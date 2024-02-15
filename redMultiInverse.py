@@ -31,7 +31,7 @@ import os
 import sys
 from itertools import product
 
-datos = "parcial.csv" #CAMBIAR EL CSV
+datos = "procesado.csv" #CAMBIAR EL CSV
 columnasAUsar = [0,1,2,3,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]
 variablesAPredecir = 1
 columnaPredecida = 4
@@ -59,7 +59,7 @@ def cartesian(arrays):
         
         # Generate and write each row of the Cartesian product
         for cartesian_row in product(*arrays):
-            if (contador < 500):                                 #VOY A PROBAR A CAMBIAR DE 30 A 300
+            if (contador < 1000):                                 #VOY A PROBAR A CAMBIAR DE 30 A 300
                 print(f"Writing row: {cartesian_row}")
                 csv_writer.writerow(cartesian_row)
                 contador = contador +1
