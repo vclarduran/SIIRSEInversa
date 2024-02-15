@@ -59,7 +59,7 @@ def cartesian(arrays):
         
         # Generate and write each row of the Cartesian product
         for cartesian_row in product(*arrays):
-            if (contador < 30):
+            if (contador < 500):                                 #VOY A PROBAR A CAMBIAR DE 30 A 300
                 print(f"Writing row: {cartesian_row}")
                 csv_writer.writerow(cartesian_row)
                 contador = contador +1
@@ -115,6 +115,8 @@ def get_model(n_inputs, n_outputs): #Crea un modelo de dos capas
 	model = Sequential()
 	model.add(Dense(20, input_dim=n_inputs, kernel_initializer='he_uniform', activation='relu'))
 	model.add(Dense(13626, activation='relu'))
+	model.add(Dense(13626, activation='relu'))
+     
 
 	model.add(Dense(n_outputs, activation="linear"))
 	model.compile(loss='mse', optimizer='adam',metrics=['mse','mae','accuracy'])
@@ -153,7 +155,7 @@ def predict_inverse(valorReferencia, training_data_not_scaled, model, posiblesCo
 
             print("prediccion: " + str(prediction))
             
-            if (prediction > (valorReferencia * 0.2) and prediction < (valorReferencia * 20)):
+            if (prediction > (valorReferencia * 0.8) and prediction < (valorReferencia * 1.2)):
                 arrayValidas.append(linea)
     
     return arrayValidas
